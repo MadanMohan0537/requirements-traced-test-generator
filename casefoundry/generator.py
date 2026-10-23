@@ -12,11 +12,14 @@ DIFFICULTIES = ("happy", "boundary", "hostile")
 
 
 def _case(requirement: Requirement, persona: str, difficulty: str,
-          index: int, payload: dict, expected: str, intent: str) -> TestCase:
+          index: int, payload: dict, expected: str, intent: str,
+          oracle_confidence: float = 0.9,
+          oracle_basis: str = "deterministic-domain-rule") -> TestCase:
     raw = f"{requirement.id}|{persona}|{difficulty}|{index}"
     case_id = "CF-" + sha256(raw.encode()).hexdigest()[:10].upper()
     return TestCase(case_id, requirement.id, persona, intent, difficulty,
-                    payload, expected, requirement.text)
+                    payload, expected, requirement.text, oracle_confidence,
+                    oracle_basis)
 
 
 def generate_for(requirement: Requirement) -> list[TestCase]:
@@ -56,7 +59,8 @@ def generate_for(requirement: Requirement) -> list[TestCase]:
         for i, difficulty in enumerate(DIFFICULTIES):
             cases.append(_case(requirement, PERSONAS[i], difficulty, i,
                                {"action": "review", "variant": difficulty},
-                               "manual-review", "generic-requirement"))
+                               "manual-review", "generic-requirement", 0.0,
+                               "no-executable-domain-adapter"))
     return cases
 
 
@@ -78,4 +82,5 @@ def deduplicate(cases: list[TestCase], threshold: float = 0.92) -> list[TestCase
                    similarity(candidate, item) >= threshold for item in kept):
             kept.append(candidate)
     return kept
+
 

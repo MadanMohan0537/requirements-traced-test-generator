@@ -6,6 +6,7 @@ from .generator import generate_suite
 from .parser import parse_requirements
 from .report import build_report
 from .review import ReviewQueue
+from .oracles import assess_oracles
 
 
 def generate(prd_path: str, output: str, report_path: str, review_db: str) -> dict:
@@ -14,7 +15,11 @@ def generate(prd_path: str, output: str, report_path: str, review_db: str) -> di
     Path(output).write_text(json.dumps([case.to_dict() for case in cases], indent=2) + "\n", encoding="utf-8")
     report = build_report(requirements, cases)
     Path(report_path).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    report["queued_for_review"] = ReviewQueue(review_db).add(cases)
+    queue = ReviewQueue(review_db)
+    report["queued_for_review"] = queue.add(cases)
+    report["queued_for_oracle_review"] = queue.add_oracles(
+        cases, assess_oracles(cases)
+    )
     return report
 
 
@@ -34,3 +39,4 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

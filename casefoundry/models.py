@@ -22,8 +22,11 @@ class TestCase:
     input: dict
     expected: str
     evidence: str
+    oracle_confidence: float = 0.9
+    oracle_basis: str = "deterministic-domain-rule"
     generator: str = "deterministic-grid-v1"
 
     def to_dict(self) -> dict:
         return asdict(self)
+
 

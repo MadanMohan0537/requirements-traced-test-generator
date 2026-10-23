@@ -1,11 +1,11 @@
 # Rigorous feature backlog
 
-P1 mutation adequacy is implemented. Everything else below is planned and ordered by decision value rather than visual polish.
+P1 mutation adequacy and P2 oracle uncertainty routing are implemented. Everything else below is planned and ordered by decision value rather than visual polish.
 
 | Priority | Feature | Concrete user problem | Intended behavior | Dependencies | Success test | Risks and tradeoffs |
 |---|---|---|---|---|---|---|
 | P1 shipped | Mutation adequacy score | Authors cannot tell whether generated tests detect defects | Seed deterministic faults; report kills, survivors, and case-to-fault matrix | Executable domain adapter, frozen fixture | At equal budget, grid cases kill more frozen mutations than happy-path-only cases | Artificial faults may be unrealistic; add incident-derived defects |
-| P2 | Oracle uncertainty queue | Generated expected answers can be confidently wrong | Separate requirement evidence, expected behavior, and oracle confidence; queue contradictions | Reviewer labels, evidence model | On a frozen contradictory set, bad oracles are rejected at the predeclared threshold | Confidence is not calibration; workflow adds review cost |
+| P2 shipped | Oracle uncertainty queue | Generated expected answers can be confidently wrong | Separate requirement evidence, expected behavior, oracle basis, and confidence; hold weak and contradictory oracles for adjudication | Evidence-bearing case model, SQLite queue | Frozen opposing 0.95-confidence oracles are both held; known-domain control oracles are ready | Exact-input matching misses semantic conflicts; confidence is not calibration |
 | P2 | PRD-diff impact regeneration | A small requirement edit forces noisy full regeneration | Fingerprint clauses; regenerate and retire only impacted descendants | Versioned PRDs, stable lineage | Editing R3 changes only R3-linked cases and the audit explains every delta | Cross-clause dependencies may be missed |
 | P2 | Incident-derived mutation importer | Toy faults overstate real-world adequacy | Convert redacted historical defects into replayable domain mutations | Incident taxonomy, privacy review | Held-out incident mutations distinguish the grid from a random equal-budget suite | Historical incidents are selective and can leak sensitive detail |
 | P3 | Diversity budget optimizer | Case count grows faster than review capacity | Select a budgeted set maximizing clause, persona, difficulty, and lexical diversity | Similarity model, review budget | Same mutation score with at least 30% fewer reviewed cases | Optimization may remove rare but valuable cases |
@@ -16,5 +16,8 @@ P1 mutation adequacy is implemented. Everything else below is planned and ordere
 
 ## Next slice
 
-Build the oracle uncertainty queue next. It addresses the largest remaining integrity risk: a traceable test can still encode the wrong expected behavior. Require explicit source evidence and reviewer adjudication before any oracle becomes trusted.
+Build PRD-diff impact regeneration next. A clause fingerprint and stable lineage
+should retire and regenerate only descendants of changed requirements, with an
+audit artifact explaining every retained, added, and retired case.
+
 

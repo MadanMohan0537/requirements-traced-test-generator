@@ -1,6 +1,6 @@
 # CaseFoundry
 
-[![CI](https://github.com/MadanMohan0537/casefoundry/actions/workflows/ci.yml/badge.svg)](https://github.com/MadanMohan0537/casefoundry/actions/workflows/ci.yml)
+[![CI](https://github.com/MadanMohan0537/requirements-traced-test-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/MadanMohan0537/requirements-traced-test-generator/actions/workflows/ci.yml)
 
 CaseFoundry turns numbered PRD clauses into traceable happy-path, boundary, and hostile tests. It then runs those cases against seeded faults and reports which defects the suite can actually detect—not merely how many cases it generated.
 
@@ -19,9 +19,10 @@ Handwritten golden sets skew toward happy paths and become stale as requirements
 - Persist a SQLite review queue with accept, edit, and reject states.
 - Report per-requirement coverage and thin clauses.
 - **P1 mutation adequacy:** run the suite against four deterministic faults, produce a case-to-mutation kill matrix, and compare the full grid with happy paths alone.
+- **P2 oracle uncertainty queue:** keep evidence, expected behavior, oracle basis, and routing confidence separate; hold weak, manual, or contradictory oracles for explicit adjudication.
 - Export portable JSON artifacts with no service credentials or paid dependencies.
 
-Semantic PRD parsing, embedding deduplication, model-based generation, a browser review screen, Launch Gate integration, and the P2 oracle uncertainty queue are planned—not shipped.
+Semantic PRD parsing, embedding deduplication, model-based generation, a browser review screen, Launch Gate integration, and PRD-diff regeneration are planned—not shipped.
 
 ## Quick start
 
@@ -50,12 +51,20 @@ flowchart TD
     A["Numbered PRD clauses"] --> B["Persona × intent × difficulty"]
     B --> C["Deduplicated candidates"]
     C --> D["Human review queue"]
+    C --> H["Oracle integrity screen"]
+    H --> I["Ready or adjudication hold"]
     C --> E["Toy app + seeded faults"]
     E --> F["Mutation kill matrix"]
     C --> G["Coverage report"]
 ```
 
 Every case contains `requirement_id`, `evidence`, structured `input`, `expected`, `persona`, `intent`, `difficulty`, and a generator version. Candidate cases are never automatically promoted to a trusted golden set.
+
+Oracle screening compares cases with the same intent and canonical input. If
+their expected behaviors disagree, every conflicting candidate is held even
+when its routing confidence is high. Unknown domains use `manual-review` and
+zero confidence rather than pretending the deterministic adapter understands
+them. Confidence is a workflow hint, not a calibrated probability.
 
 ## Reproducible evidence
 
@@ -69,6 +78,13 @@ The sample PRD describes upload, grounding, refusal, and deletion policies. The 
 | `unsupported_answered` | Answers without source evidence | Unsupported question |
 
 `coverage.json` records the mutation score, surviving faults, and the exact cases that killed each mutation. The tests also assert that a happy-path-only suite is inadequate, making the extension's incremental value explicit.
+
+The frozen oracle experiment creates two expectations for the same
+1,000,001-byte upload: `allow` and `deny`, each with confidence `0.95`.
+CaseFoundry classifies both as `conflict` and persists their evidence and
+counterpart IDs in the SQLite adjudication queue. The control suite from the
+sample PRD routes all 16 domain-backed oracles to `ready`; novel-domain cases
+route to `uncertain`.
 
 ## Input contract
 
@@ -88,6 +104,7 @@ The initial executable templates recognize `R1`–`R5` from the bundled sample. 
 | Defect detection | Killed mutations / total mutations |
 | Traceability | 100% of cases retain clause ID and evidence |
 | Review readiness | All generated cases enter pending review |
+| Oracle integrity | Conflicts and unsupported expectations are held for adjudication |
 
 Reviewer acceptance rate and defects found per 100 cases require real reviewers and incident-derived defects; the MVP does not invent those results.
 
@@ -100,6 +117,9 @@ Reviewer acceptance rate and defects found per 100 cases require real reviewers 
 - A 100% score means only that this suite killed these four mutations—not that the application is correct.
 - SQLite supports a small local review workflow, not concurrent enterprise moderation.
 - The review queue has no authentication, assignment, audit signatures, or web UI.
+- Oracle confidence values are deterministic routing metadata, not statistically calibrated probabilities.
+- Conflict matching requires identical canonical structured inputs and intent; it does not yet discover semantic or cross-clause contradictions.
+- Adjudication records a decision and reason but does not yet require two reviewers or preserve an append-only signature trail.
 
 ## Safety and review
 
@@ -112,4 +132,5 @@ See [docs/BACKLOG.md](docs/BACKLOG.md) for prioritized extensions with user prob
 ## License
 
 MIT
+
 

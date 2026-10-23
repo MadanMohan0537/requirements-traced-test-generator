@@ -40,9 +40,12 @@ class ReviewReportCliTests(unittest.TestCase):
             prd.write_text(PRD)
             report = generate(str(prd), str(root / "cases.json"), str(root / "coverage.json"), str(root / "reviews.db"))
             self.assertEqual(report["mutation"]["score"], 1.0)
+            self.assertEqual(report["oracles"]["held_for_adjudication"], 0)
             self.assertEqual(len(json.loads((root / "cases.json").read_text())), report["cases"])
             self.assertEqual(report["queued_for_review"], report["cases"])
+            self.assertEqual(report["queued_for_oracle_review"], report["cases"])
 
 
 if __name__ == "__main__":
     unittest.main()
+
