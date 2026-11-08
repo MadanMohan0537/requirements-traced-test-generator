@@ -20,6 +20,7 @@ Handwritten golden sets skew toward happy paths and become stale as requirements
 - Report per-requirement coverage and thin clauses.
 - **P1 mutation adequacy:** run the suite against four deterministic faults, produce a case-to-mutation kill matrix, and compare the full grid with happy paths alone.
 - **P2 oracle uncertainty queue:** keep evidence, expected behavior, oracle basis, and routing confidence separate; hold weak, manual, or contradictory oracles for explicit adjudication.
+- **PRD-diff regeneration:** fingerprint clauses, retain unchanged descendants byte-for-byte, regenerate only changed or added clauses, retire removed descendants, and emit a tamper-evident impact audit.
 - Export portable JSON artifacts with no service credentials or paid dependencies.
 
 Semantic PRD parsing, embedding deduplication, model-based generation, a browser review screen, Launch Gate integration, and PRD-diff regeneration are planned—not shipped.
@@ -33,7 +34,15 @@ python -m pip install -e .
 casefoundry generate data/sample-prd.md \
   --output cases.json \
   --report coverage.json \
-  --review-db reviews.db
+  --review-db reviews.db \
+  --manifest cases.manifest.json
+
+casefoundry regenerate data/sample-prd-v2.md \
+  --previous-manifest cases.manifest.json \
+  --output cases-v2.json \
+  --manifest cases-v2.manifest.json \
+  --audit impact-audit.json \
+  --review-db reviews-v2.db
 ```
 
 Run the tests:
@@ -59,6 +68,13 @@ flowchart TD
 ```
 
 Every case contains `requirement_id`, `evidence`, structured `input`, `expected`, `persona`, `intent`, `difficulty`, and a generator version. Candidate cases are never automatically promoted to a trusted golden set.
+
+Each case also carries the SHA-256 fingerprint of its source clause. A suite manifest
+binds the normalized requirements and complete candidate payloads to one digest. During
+`regenerate`, unchanged fingerprints reuse the prior manifest's exact cases; edited and
+new clauses use generator v2; removed or edited descendants appear in the retired list.
+Only newly generated cases enter the new review queue. The audit records every clause
+status, exact retained/added/retired IDs, suite digests, queue counts, and its own digest.
 
 Oracle screening compares cases with the same intent and canonical input. If
 their expected behaviors disagree, every conflicting candidate is held even
@@ -86,6 +102,12 @@ counterpart IDs in the SQLite adjudication queue. The control suite from the
 sample PRD routes all 16 domain-backed oracles to `ready`; novel-domain cases
 route to `uncertain`.
 
+The committed PRD-diff experiment edits R3 and adds R6. It retains all 13 cases
+linked to R1, R2, R4, and R5; retires the three prior R3 cases; and adds six new
+cases for R3 and R6. Reordering unchanged clauses retains every case and queues
+nothing. These deterministic results validate lineage mechanics, not whether an
+unmodeled cross-clause dependency should also be regenerated.
+
 ## Input contract
 
 ```markdown
@@ -105,6 +127,7 @@ The initial executable templates recognize `R1`–`R5` from the bundled sample. 
 | Traceability | 100% of cases retain clause ID and evidence |
 | Review readiness | All generated cases enter pending review |
 | Oracle integrity | Conflicts and unsupported expectations are held for adjudication |
+| Incremental regeneration | Exact retained, added, and retired descendants per clause fingerprint |
 
 Reviewer acceptance rate and defects found per 100 cases require real reviewers and incident-derived defects; the MVP does not invent those results.
 
@@ -120,6 +143,8 @@ Reviewer acceptance rate and defects found per 100 cases require real reviewers 
 - Oracle confidence values are deterministic routing metadata, not statistically calibrated probabilities.
 - Conflict matching requires identical canonical structured inputs and intent; it does not yet discover semantic or cross-clause contradictions.
 - Adjudication records a decision and reason but does not yet require two reviewers or preserve an append-only signature trail.
+- Clause fingerprints detect direct text edits, additions, and removals only. They do not infer semantic dependencies between clauses, so an unchanged but dependent clause may need manual regeneration.
+- Manifest digests detect accidental or untrusted artifact modification but are not signatures and do not establish author identity.
 
 ## Safety and review
 

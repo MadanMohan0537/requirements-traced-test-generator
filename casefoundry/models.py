@@ -24,7 +24,8 @@ class TestCase:
     evidence: str
     oracle_confidence: float = 0.9
     oracle_basis: str = "deterministic-domain-rule"
-    generator: str = "deterministic-grid-v1"
+    generator: str = "deterministic-grid-v2"
+    requirement_fingerprint: str = ""
 
     def to_dict(self) -> dict:
         return asdict(self)

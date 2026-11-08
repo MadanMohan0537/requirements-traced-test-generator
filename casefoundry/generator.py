@@ -11,15 +11,21 @@ PERSONAS = ("member", "administrator", "malicious-user")
 DIFFICULTIES = ("happy", "boundary", "hostile")
 
 
+def requirement_fingerprint(requirement: Requirement) -> str:
+    normalized = " ".join(requirement.text.split())
+    return sha256(f"{requirement.id}|{normalized}".encode()).hexdigest()
+
+
 def _case(requirement: Requirement, persona: str, difficulty: str,
           index: int, payload: dict, expected: str, intent: str,
           oracle_confidence: float = 0.9,
           oracle_basis: str = "deterministic-domain-rule") -> TestCase:
-    raw = f"{requirement.id}|{persona}|{difficulty}|{index}"
+    fingerprint = requirement_fingerprint(requirement)
+    raw = f"{fingerprint}|{persona}|{difficulty}|{index}|deterministic-grid-v2"
     case_id = "CF-" + sha256(raw.encode()).hexdigest()[:10].upper()
     return TestCase(case_id, requirement.id, persona, intent, difficulty,
                     payload, expected, requirement.text, oracle_confidence,
-                    oracle_basis)
+                    oracle_basis, "deterministic-grid-v2", fingerprint)
 
 
 def generate_for(requirement: Requirement) -> list[TestCase]:
