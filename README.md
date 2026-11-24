@@ -21,9 +21,10 @@ Handwritten golden sets skew toward happy paths and become stale as requirements
 - **P1 mutation adequacy:** run the suite against four deterministic faults, produce a case-to-mutation kill matrix, and compare the full grid with happy paths alone.
 - **P2 oracle uncertainty queue:** keep evidence, expected behavior, oracle basis, and routing confidence separate; hold weak, manual, or contradictory oracles for explicit adjudication.
 - **PRD-diff regeneration:** fingerprint clauses, retain unchanged descendants byte-for-byte, regenerate only changed or added clauses, retire removed descendants, and emit a tamper-evident impact audit.
+- **Incident-derived mutation audit:** import privacy-reviewed structured defect signatures and compare a requirement-balanced grid with seeded-random cases at equal budget.
 - Export portable JSON artifacts with no service credentials or paid dependencies.
 
-Semantic PRD parsing, embedding deduplication, model-based generation, a browser review screen, Launch Gate integration, and PRD-diff regeneration are planned—not shipped.
+Semantic PRD parsing, embedding deduplication, model-based generation, a browser review screen, and Launch Gate integration are planned—not shipped.
 
 ## Quick start
 
@@ -43,6 +44,10 @@ casefoundry regenerate data/sample-prd-v2.md \
   --manifest cases-v2.manifest.json \
   --audit impact-audit.json \
   --review-db reviews-v2.db
+
+casefoundry incident-audit data/sample-prd.md \
+  --incidents data/sample-incidents.json \
+  --output incident-audit.json
 ```
 
 Run the tests:
@@ -108,6 +113,14 @@ cases for R3 and R6. Reordering unchanged clauses retains every case and queues
 nothing. These deterministic results validate lineage mechanics, not whether an
 unmodeled cross-clause dependency should also be regenerated.
 
+The incident audit fixture contains three authored synthetic analogues—unsafe upload,
+role-check bypass, and unsupported answering—and explicitly declares that it contains no
+real user data. At an equal four-case budget, the requirement-balanced hostile grid kills
+3/3 signatures while the seeded-random control kills 2/3. The bundle freezes the random
+seed and a minimum gain of one before scoring. This validates import, matching, accounting,
+and rejection behavior; one authored allocation does not establish better production
+defect detection.
+
 ## Input contract
 
 ```markdown
@@ -128,6 +141,7 @@ The initial executable templates recognize `R1`–`R5` from the bundled sample. 
 | Review readiness | All generated cases enter pending review |
 | Oracle integrity | Conflicts and unsupported expectations are held for adjudication |
 | Incremental regeneration | Exact retained, added, and retired descendants per clause fingerprint |
+| Incident adequacy | Equal-budget kills, survivors, exact case matrix, source types and privacy-review declaration |
 
 Reviewer acceptance rate and defects found per 100 cases require real reviewers and incident-derived defects; the MVP does not invent those results.
 
@@ -145,6 +159,8 @@ Reviewer acceptance rate and defects found per 100 cases require real reviewers 
 - Adjudication records a decision and reason but does not yet require two reviewers or preserve an append-only signature trail.
 - Clause fingerprints detect direct text edits, additions, and removals only. They do not infer semantic dependencies between clauses, so an unchanged but dependent clause may need manual regeneration.
 - Manifest digests detect accidental or untrusted artifact modification but are not signatures and do not establish author identity.
+- Incident privacy review is a documented assertion, not DLP. The schema deliberately excludes prompts and free-form reproductions, but summaries and notes still require human review.
+- Structured triggers replay narrow defect signatures rather than arbitrary implementation faults. Historical incidents are selective, and one seeded random comparison has high variance.
 
 ## Safety and review
 

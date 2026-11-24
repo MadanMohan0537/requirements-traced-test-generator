@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "provenance": "Authored synthetic analogues of common policy failures; no production logs or real user content.",
+  "privacy_review": {
+    "reviewed": true,
+    "contains_real_user_data": false,
+    "reviewer": "fixture-author",
+    "reviewed_at": "2026-11-24T08:00:00-05:00",
+    "notes": "Data-only structured triggers; synthetic identifiers; no prompts, credentials, personal data, or customer text."
+  },
+  "experiment": {
+    "budget": 4,
+    "random_seed": 17,
+    "minimum_kill_gain": 1
+  },
+  "incidents": [
+    {
+      "id": "INC-001",
+      "requirement_id": "R1",
+      "summary": "Executable upload was accepted.",
+      "source_type": "synthetic-incident-analogue",
+      "trigger": {"action": "upload", "extension": "exe"},
+      "expected": "deny",
+      "observed": "allow",
+      "redaction_notes": "Synthetic extension and action only."
+    },
+    {
+      "id": "INC-002",
+      "requirement_id": "R4",
+      "summary": "Member deletion bypassed the role check.",
+      "source_type": "synthetic-incident-analogue",
+      "trigger": {"action": "delete", "role": "member"},
+      "expected": "deny",
+      "observed": "allow",
+      "redaction_notes": "Generic synthetic role; no account identifiers."
+    },
+    {
+      "id": "INC-003",
+      "requirement_id": "R3",
+      "summary": "Unsupported question received a grounded-looking answer.",
+      "source_type": "synthetic-incident-analogue",
+      "trigger": {"action": "answer", "has_source": false},
+      "expected": "refuse",
+      "observed": "grounded",
+      "redaction_notes": "Boolean evidence state only; no question or answer text."
+    }
+  ]
+}

@@ -8,6 +8,7 @@ from .report import build_report
 from .review import ReviewQueue
 from .oracles import assess_oracles
 from .lineage import build_manifest, regenerate_impacted
+from .incidents import incident_adequacy
 
 
 def generate(prd_path: str, output: str, report_path: str, review_db: str,
@@ -65,13 +66,24 @@ def main(argv=None) -> int:
     update.add_argument("--manifest", default="cases.manifest.json")
     update.add_argument("--audit", default="impact-audit.json")
     update.add_argument("--review-db", default="reviews.db")
+    incidents = sub.add_parser("incident-audit")
+    incidents.add_argument("prd")
+    incidents.add_argument("--incidents", required=True)
+    incidents.add_argument("--output", default="incident-audit.json")
     args = parser.parse_args(argv)
     if args.command == "generate":
         print(json.dumps(generate(args.prd, args.output, args.report, args.review_db,
                                   args.manifest), indent=2))
-    else:
+    elif args.command == "regenerate":
         print(json.dumps(regenerate(args.prd, args.previous_manifest, args.output,
                                     args.manifest, args.audit, args.review_db), indent=2))
+    else:
+        requirements = parse_requirements(Path(args.prd).read_text(encoding="utf-8"))
+        cases = generate_suite(requirements)
+        bundle = json.loads(Path(args.incidents).read_text(encoding="utf-8"))
+        report = incident_adequacy(cases, bundle)
+        Path(args.output).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        print(json.dumps(report, indent=2))
     return 0
 
 

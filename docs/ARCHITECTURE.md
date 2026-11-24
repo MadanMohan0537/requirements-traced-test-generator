@@ -18,6 +18,9 @@ CaseFoundry is a portfolio-scale offline tool. The CLI parses one PRD, creates v
 | Evidence-first oracle screen | A traceable case can still encode the wrong expected behavior | Exact-input conflict matching misses semantic contradictions |
 | Confidence as routing only | Uncalibrated scores cannot prove correctness | More candidates require human adjudication |
 | Signed-content manifest | Every candidate is bound to its clause fingerprint and suite digest | A digest is tamper evidence, not an identity signature |
+| Data-only incident mutation | Replay production-shaped defects without executing imported code | Structured triggers model only narrow signatures |
+| Privacy declaration before import | Prevent raw incident payloads from silently entering artifacts | Self-attestation is not automated DLP |
+| Equal-budget grid/random comparison | Separate case-selection value from suite-size advantage | One random seed is a noisy baseline |
 
 ## Artifact contracts
 
@@ -40,9 +43,18 @@ intent. Opposing expectations on the same behavior are held regardless of
 confidence. Missing evidence, missing basis, manual expectations, and values
 below the predeclared `0.75` routing threshold are uncertain.
 
+`sample-incidents.json` demonstrates the incident mutation contract. Import requires an
+explicit privacy review, no real-user-data declaration, timezone-stamped review, known PRD
+requirement IDs, and trigger keys limited to the toy adapter's structured policy fields.
+The audit binds bundle and suite digests, selects hostile cases round-robin by requirement,
+and compares them with a seeded random set at the same predeclared budget. A case kills an
+incident signature only when its baseline expectation is correct and its input matches the
+trigger. Imported text is never executed.
+
 ## Production hardening
 
-Add reviewed cross-clause dependency expansion, semantic contradiction detection,
+Add reviewed cross-clause dependency expansion, automated incident DLP, repeated random
+allocations, semantic contradiction detection,
 domain-specific oracle adapters, calibrated semantic deduplication,
 authenticated reviewer assignment, immutable audit events, and incremental
 release signatures. Run generated code only inside a resource-limited

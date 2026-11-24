@@ -20,4 +20,6 @@ jobs:
           python -c "import json; r=json.load(open('coverage.json')); assert r['oracles']['held_for_adjudication'] == 0"
           casefoundry regenerate data/sample-prd-v2.md --previous-manifest cases.manifest.json --output cases-v2.json --manifest cases-v2.manifest.json --audit impact-audit.json --review-db reviews-v2.db
           python -c "import json; a=json.load(open('impact-audit.json')); assert a['counts'] == {'retained': 13, 'added': 6, 'retired': 3}"
+          casefoundry incident-audit data/sample-prd.md --incidents data/sample-incidents.json --output incident-audit.json
+          python -c "import json; a=json.load(open('incident-audit.json')); assert a['grid']['killed'] == 3 and a['random']['killed'] == 2 and a['accepted']"
 
